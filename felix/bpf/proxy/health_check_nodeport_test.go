@@ -27,7 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/fake"
 
-	proxy "github.com/projectcalico/calico/felix/bpf/proxy"
+	"github.com/projectcalico/calico/felix/bpf/proxy"
 )
 
 var _ = Describe("BPF Proxy healthCheckNodeport", func() {
@@ -66,7 +66,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					Selector: map[string]string{
 						"app": "test",
 					},
-					ExternalTrafficPolicy: "Local",
+					ExternalTrafficPolicy: v1.ServiceExternalTrafficPolicyTypeLocal,
 					HealthCheckNodePort:   int32(healthCheckNodePort),
 					Ports: []v1.ServicePort{
 						{
@@ -166,7 +166,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					return err
 				}
 				if result.StatusCode != 200 {
-					return fmt.Errorf("Unexpected status code %d; expected 200", result.StatusCode)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, result)
 				}
 
 				var status map[string]interface{}
