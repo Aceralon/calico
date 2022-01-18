@@ -82,7 +82,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding its endpoints", func() {
-			err := k8s.Tracker().Add(&v1.Endpoints{
+			err := k8s.Tracker().Add(epsToSlice(&v1.Endpoints{
 				TypeMeta:   typeMetaV1("Endpoints"),
 				ObjectMeta: objectMeataV1("LB"),
 				Subsets: []v1.EndpointSubset{
@@ -99,7 +99,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 						},
 					},
 				},
-			})
+			}))
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -133,7 +133,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 		By("adding a local and a non-local endpoint", func() {
 			err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpoints"),
-				&v1.Endpoints{
+				epsToSlice(&v1.Endpoints{
 					TypeMeta:   typeMetaV1("Endpoints"),
 					ObjectMeta: objectMeataV1("LB"),
 					Subsets: []v1.EndpointSubset{
@@ -155,7 +155,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 							},
 						},
 					},
-				},
+				}),
 				"default")
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -190,7 +190,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 			By("making non-local a local endpoint", func() {
 				err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpoints"),
-					&v1.Endpoints{
+					epsToSlice(&v1.Endpoints{
 						TypeMeta:   typeMetaV1("Endpoints"),
 						ObjectMeta: objectMeataV1("LB"),
 						Subsets: []v1.EndpointSubset{
@@ -212,7 +212,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 								},
 							},
 						},
-					},
+					}),
 					"default")
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -250,7 +250,7 @@ type mockDummySyncer struct {
 	syncerConntrackAPIDummy
 }
 
-func (s *mockDummySyncer) SetTriggerFn(f func()) {
+func (s *mockDummySyncer) SetTriggerFn(_ func()) {
 }
 
 func (*mockDummySyncer) Stop() {}
