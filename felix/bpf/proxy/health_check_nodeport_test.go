@@ -132,7 +132,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding a local and a non-local endpoint", func() {
-			err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpoints"),
+			err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpointSlice"),
 				epsToSlice(&v1.Endpoints{
 					TypeMeta:   typeMetaV1("Endpoints"),
 					ObjectMeta: objectMeataV1("LB"),
@@ -189,7 +189,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 			}, "10s", "200ms").Should(Succeed())
 
 			By("making non-local a local endpoint", func() {
-				err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpoints"),
+				err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpointSlice"),
 					epsToSlice(&v1.Endpoints{
 						TypeMeta:   typeMetaV1("Endpoints"),
 						ObjectMeta: objectMeataV1("LB"),
