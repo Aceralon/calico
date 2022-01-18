@@ -22,8 +22,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	v1 "k8s.io/api/core/v1"
+	discovery "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/fake"
 
@@ -132,7 +132,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding a local and a non-local endpoint", func() {
-			err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpointSlice"),
+			err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
 				epsToSlice(&v1.Endpoints{
 					TypeMeta:   typeMetaV1("Endpoints"),
 					ObjectMeta: objectMeataV1("LB"),
@@ -189,7 +189,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 			}, "10s", "200ms").Should(Succeed())
 
 			By("making non-local a local endpoint", func() {
-				err := k8s.Tracker().Update(v1.SchemeGroupVersion.WithResource("endpointSlice"),
+				err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
 					epsToSlice(&v1.Endpoints{
 						TypeMeta:   typeMetaV1("Endpoints"),
 						ObjectMeta: objectMeataV1("LB"),
