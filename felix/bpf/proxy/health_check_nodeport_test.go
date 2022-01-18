@@ -162,7 +162,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 		By("checking that there is a local endpoint", func() {
 			Eventually(func() error {
-				get, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("Endpoints"), "", "LB")
+				get, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("Endpoints"), "", "")
 				if err != nil {
 					return err
 				}
