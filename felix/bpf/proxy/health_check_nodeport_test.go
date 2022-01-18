@@ -76,7 +76,6 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 							TargetPort: intstr.FromInt(32678),
 						},
 					},
-					PublishNotReadyAddresses: true,
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
