@@ -53,7 +53,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 	})
 
-	It("should expose health check enpoint", func() {
+	It("should expose health check endpoint", func() {
 		healthCheckNodePort := 1212
 
 		By("adding a LoadBalancer", func() {
@@ -75,6 +75,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 							TargetPort: intstr.FromInt(32678),
 						},
 					},
+					PublishNotReadyAddresses: true,
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -166,7 +167,10 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					return err
 				}
 				if result.StatusCode != 200 {
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, result)
+					var status map[string]interface{}
+					decoder := json.NewDecoder(result.Body)
+					err = decoder.Decode(&status)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, status)
 				}
 
 				var status map[string]interface{}
