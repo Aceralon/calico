@@ -141,7 +141,6 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 							Addresses: []v1.EndpointAddress{
 								{
 									IP:       "10.1.2.1",
-									Hostname: "testhost",
 									NodeName: &testNodeName,
 								},
 								{
@@ -163,12 +162,20 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 		By("checking that there is a local endpoint", func() {
 			Eventually(func() error {
+				get, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("Endpoints"), "", "LB")
+				if err != nil {
+					return err
+				}
+				fmt.Printf("get result: \n%+v\n", get)
 				result, err := http.Get(fmt.Sprintf("http://localhost:%d", healthCheckNodePort))
 				if err != nil {
 					return err
 				}
 				if result.StatusCode != 200 {
-					return fmt.Errorf("Unexpected status code %d; expected 200", result.StatusCode)
+					var status map[string]interface{}
+					decoder := json.NewDecoder(result.Body)
+					err = decoder.Decode(&status)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, status)
 				}
 
 				var status map[string]interface{}
