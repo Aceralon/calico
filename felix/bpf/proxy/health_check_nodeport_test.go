@@ -24,6 +24,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	discovery "k8s.io/api/discovery/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/fake"
 
@@ -58,7 +59,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 		By("adding a LoadBalancer", func() {
 			err := k8s.Tracker().Add(&v1.Service{
-				TypeMeta:   typeMetaV1("Service"),
+				TypeMeta:   typeMetaDiscoveryV1("Service"),
 				ObjectMeta: objectMeataV1("LB"),
 				Spec: v1.ServiceSpec{
 					ClusterIP: "10.1.0.1",
@@ -258,4 +259,11 @@ func (*mockDummySyncer) Stop() {}
 func (*mockDummySyncer) Apply(state proxy.DPSyncerState) error {
 	log("state = %+v\n", state)
 	return nil
+}
+
+func typeMetaDiscoveryV1(kind string) metav1.TypeMeta {
+	return metav1.TypeMeta{
+		Kind:       kind,
+		APIVersion: "discovery.k8s.io/v1",
+	}
 }
