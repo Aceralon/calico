@@ -141,6 +141,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 							Addresses: []v1.EndpointAddress{
 								{
 									IP:       "10.1.2.1",
+									Hostname: "testhost",
 									NodeName: &testNodeName,
 								},
 								{
@@ -167,10 +168,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					return err
 				}
 				if result.StatusCode != 200 {
-					var status map[string]interface{}
-					decoder := json.NewDecoder(result.Body)
-					err = decoder.Decode(&status)
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, status)
+					return fmt.Errorf("Unexpected status code %d; expected 200", result.StatusCode)
 				}
 
 				var status map[string]interface{}
