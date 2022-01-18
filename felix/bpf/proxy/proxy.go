@@ -343,17 +343,5 @@ func (is *initState) setEpsSynced() {
 
 type loggerRecorder struct{}
 
-func (r *loggerRecorder) Event(object runtime.Object, eventtype, reason, message string) {
-}
-
 func (r *loggerRecorder) Eventf(regarding runtime.Object, related runtime.Object, eventtype, reason, action, note string, args ...interface{}) {
-
-}
-
-func (r *loggerRecorder) PastEventf(object runtime.Object, timestamp metav1.Time, eventtype,
-	reason, messageFmt string, args ...interface{}) {
-}
-
-func (r *loggerRecorder) AnnotatedEventf(object runtime.Object, annotations map[string]string,
-	eventtype, reason, messageFmt string, args ...interface{}) {
 }
