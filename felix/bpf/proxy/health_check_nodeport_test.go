@@ -33,7 +33,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 	var p proxy.Proxy
 	k8s := fake.NewSimpleClientset()
 
-	testNodeName := "testnode"
+	testNodeName := "localhost"
 	testNodeNameOther := "anothertestnode"
 
 	BeforeEach(func() {
@@ -79,7 +79,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		By("adding its endpointSlice", func() {
+		By("adding its endpoints", func() {
 			err := k8s.Tracker().Add(&v1.Endpoints{
 				TypeMeta:   typeMetaV1("Endpoints"),
 				ObjectMeta: objectMeataV1("lb"),
