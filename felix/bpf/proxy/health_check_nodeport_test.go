@@ -204,15 +204,15 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					return err
 				}
 				if result.StatusCode != 200 {
-					//a, err := k8s.Tracker().Get(discovery.SchemeGroupVersion.WithResource("endpointslices"), "default", "lb")
-					//if err != nil {
-					//	return err
-					//}
-					//
-					//ajson, err := json.MarshalIndent(a, "", "  ")
-					//if err != nil {
-					//	return err
-					//}
+					a, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("service"), "default", "lb")
+					if err != nil {
+						return err
+					}
+
+					ajson, err := json.MarshalIndent(a, "", "  ")
+					if err != nil {
+						return err
+					}
 
 					b, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("endpoints"), "default", "lb")
 					if err != nil {
@@ -228,7 +228,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					var status map[string]interface{}
 					decoder := json.NewDecoder(result.Body)
 					err = decoder.Decode(&status)
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v", result.StatusCode, status, string(bjson))
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\nService: \n%+v", result.StatusCode, status, string(bjson), string(ajson))
 				}
 
 				var status map[string]interface{}
