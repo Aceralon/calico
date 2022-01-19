@@ -165,6 +165,9 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 
 		By("checking that there is a local endpoint", func() {
 			Eventually(func() error {
+				// TODO: should test endpoint slice, its already presented
+				/*
+				 */
 				result, err := http.Get(fmt.Sprintf("http://localhost:%d", healthCheckNodePort))
 				if err != nil {
 					return err
@@ -175,10 +178,15 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 						return err
 					}
 
+					ajson, err := json.MarshalIndent(a, "", "  ")
+					if err != nil {
+						return err
+					}
+
 					var status map[string]interface{}
 					decoder := json.NewDecoder(result.Body)
 					err = decoder.Decode(&status)
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\n", result.StatusCode, status, a)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\n", result.StatusCode, status, ajson)
 				}
 
 				var status map[string]interface{}
