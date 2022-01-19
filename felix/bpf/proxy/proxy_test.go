@@ -652,7 +652,7 @@ func epsToSlice(eps *v1.Endpoints) *discovery.EndpointSlice {
 		for _, addr := range subset.Addresses {
 			slice.Endpoints = append(slice.Endpoints, discovery.Endpoint{
 				Addresses: []string{addr.IP},
-				Hostname:  addr.NodeName,
+				Hostname:  &addr.Hostname,
 				NodeName:  addr.NodeName,
 			})
 		}
