@@ -162,49 +162,105 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 			Eventually(func() error {
 				// TODO: should test endpoint slice, its already presented
 				/*
+							{
+							        "kind": "EndpointSlice",
+							        "apiVersion": "discovery.k8s.io/v1",
+							        "metadata": {
+							          "name": "lb",
+							          "namespace": "default",
+							          "creationTimestamp": null,
+							          "labels": {
+							            "kubernetes.io/service-name": "lb"
+							          }
+							        },
+							        "addressType": "IPv4",
+							        "endpoints": [
+							          {
+							            "addresses": [
+							              "10.1.2.1"
+							            ],
+							            "conditions": {},
+							            "hostname": "testnode"
+							          },
+							          {
+							            "addresses": [
+							              "10.1.2.2"
+							            ],
+							            "conditions": {},
+							            "hostname": "anothertestnode"
+							          }
+							        ],
+							        "ports": [
+							          {
+							            "name": "port-0-0-1234",
+							            "protocol": "TCP",
+							            "port": 1234
+							          }
+							        ]
+							      }
 					{
-					        "kind": "EndpointSlice",
-					        "apiVersion": "discovery.k8s.io/v1",
+					        "kind": "Endpoints",
+					        "apiVersion": "v1",
 					        "metadata": {
 					          "name": "lb",
 					          "namespace": "default",
-					          "creationTimestamp": null,
-					          "labels": {
-					            "kubernetes.io/service-name": "lb"
-					          }
+					          "creationTimestamp": null
 					        },
-					        "addressType": "IPv4",
-					        "endpoints": [
+					        "subsets": [
 					          {
 					            "addresses": [
-					              "10.1.2.1"
+					              {
+					                "ip": "10.1.2.1",
+					                "nodeName": "localhost"
+					              },
+					              {
+					                "ip": "10.1.2.2",
+					                "nodeName": "anothertestnode"
+					              }
 					            ],
-					            "conditions": {},
-					            "hostname": "testnode"
-					          },
-					          {
-					            "addresses": [
-					              "10.1.2.2"
-					            ],
-					            "conditions": {},
-					            "hostname": "anothertestnode"
-					          }
-					        ],
-					        "ports": [
-					          {
-					            "name": "port-0-0-1234",
-					            "protocol": "TCP",
-					            "port": 1234
+					            "ports": [
+					              {
+					                "port": 1234
+					              }
+					            ]
 					          }
 					        ]
 					      }
+						{
+						        "kind": "Service",
+						        "apiVersion": "v1",
+						        "metadata": {
+						          "name": "lb",
+						          "namespace": "default",
+						          "creationTimestamp": null
+						        },
+						        "spec": {
+						          "ports": [
+						            {
+						              "protocol": "TCP",
+						              "port": 4321,
+						              "targetPort": 32678
+						            }
+						          ],
+						          "selector": {
+						            "app": "test"
+						          },
+						          "clusterIP": "10.1.0.1",
+						          "type": "LoadBalancer",
+						          "externalTrafficPolicy": "Local",
+						          "healthCheckNodePort": 1212
+						        },
+						        "status": {
+						          "loadBalancer": {}
+						        }
+						      }
 				*/
 				result, err := http.Get(fmt.Sprintf("http://localhost:%d", healthCheckNodePort))
 				if err != nil {
 					return err
 				}
 				if result.StatusCode != 200 {
-					a, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("service"), "default", "lb")
+					a, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("services"), "default", "lb")
 					if err != nil {
 						return err
 					}
