@@ -84,7 +84,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		By("adding its endpointSlice", func() {
 			nodeEps := &v1.Endpoints{
 				TypeMeta:   typeMetaV1("Endpoints"),
-				ObjectMeta: objectMeataV1("test-ep"),
+				ObjectMeta: objectMeataV1("lb"),
 				Subsets: []v1.EndpointSubset{
 					{
 						Addresses: []v1.EndpointAddress{
@@ -134,30 +134,31 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding a local and a non-local endpoint", func() {
-			err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
-				epsToSlice(&v1.Endpoints{
-					TypeMeta:   typeMetaV1("Endpoints"),
-					ObjectMeta: objectMeataV1("test-ep"),
-					Subsets: []v1.EndpointSubset{
-						{
-							Addresses: []v1.EndpointAddress{
-								{
-									IP:       "10.1.2.1",
-									NodeName: &testNodeName,
-								},
-								{
-									IP:       "10.1.2.2",
-									NodeName: &testNodeNameOther,
-								},
+			localEps := &v1.Endpoints{
+				TypeMeta:   typeMetaV1("Endpoints"),
+				ObjectMeta: objectMeataV1("lb"),
+				Subsets: []v1.EndpointSubset{
+					{
+						Addresses: []v1.EndpointAddress{
+							{
+								IP:       "10.1.2.1",
+								NodeName: &testNodeName,
 							},
-							Ports: []v1.EndpointPort{
-								{
-									Port: 1234,
-								},
+							{
+								IP:       "10.1.2.2",
+								NodeName: &testNodeNameOther,
+							},
+						},
+						Ports: []v1.EndpointPort{
+							{
+								Port: 1234,
 							},
 						},
 					},
-				}),
+				},
+			}
+			err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
+				epsToSlice(localEps),
 				"default")
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -169,10 +170,15 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 					return err
 				}
 				if result.StatusCode != 200 {
+					a, err := k8s.Tracker().Get(discovery.SchemeGroupVersion.WithResource("endpointslices"), "default", "lb")
+					if err != nil {
+						return err
+					}
+
 					var status map[string]interface{}
 					decoder := json.NewDecoder(result.Body)
 					err = decoder.Decode(&status)
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v", result.StatusCode, status)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\n", result.StatusCode, status, a)
 				}
 
 				var status map[string]interface{}
@@ -194,7 +200,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 				err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
 					epsToSlice(&v1.Endpoints{
 						TypeMeta:   typeMetaV1("Endpoints"),
-						ObjectMeta: objectMeataV1("test-ep"),
+						ObjectMeta: objectMeataV1("lb"),
 						Subsets: []v1.EndpointSubset{
 							{
 								Addresses: []v1.EndpointAddress{
