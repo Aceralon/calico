@@ -82,7 +82,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding its endpointSlice", func() {
-			nodeEps := &v1.Endpoints{
+			err := k8s.Tracker().Add(epsToSlice(&v1.Endpoints{
 				TypeMeta:   typeMetaV1("Endpoints"),
 				ObjectMeta: objectMeataV1("lb"),
 				Subsets: []v1.EndpointSubset{
@@ -99,9 +99,7 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 						},
 					},
 				},
-			}
-
-			err := k8s.Tracker().Add(epsToSlice(nodeEps))
+			}))
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -134,31 +132,30 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 		})
 
 		By("adding a local and a non-local endpoint", func() {
-			localEps := &v1.Endpoints{
-				TypeMeta:   typeMetaV1("Endpoints"),
-				ObjectMeta: objectMeataV1("lb"),
-				Subsets: []v1.EndpointSubset{
-					{
-						Addresses: []v1.EndpointAddress{
-							{
-								IP:       "10.1.2.1",
-								NodeName: &testNodeName,
+			err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
+				epsToSlice(&v1.Endpoints{
+					TypeMeta:   typeMetaV1("Endpoints"),
+					ObjectMeta: objectMeataV1("lb"),
+					Subsets: []v1.EndpointSubset{
+						{
+							Addresses: []v1.EndpointAddress{
+								{
+									IP:       "10.1.2.1",
+									NodeName: &testNodeName,
+								},
+								{
+									IP:       "10.1.2.2",
+									NodeName: &testNodeNameOther,
+								},
 							},
-							{
-								IP:       "10.1.2.2",
-								NodeName: &testNodeNameOther,
-							},
-						},
-						Ports: []v1.EndpointPort{
-							{
-								Port: 1234,
+							Ports: []v1.EndpointPort{
+								{
+									Port: 1234,
+								},
 							},
 						},
 					},
-				},
-			}
-			err := k8s.Tracker().Update(discovery.SchemeGroupVersion.WithResource("endpointslices"),
-				epsToSlice(localEps),
+				}),
 				"default")
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -167,7 +164,43 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 			Eventually(func() error {
 				// TODO: should test endpoint slice, its already presented
 				/*
-				 */
+					{
+					        "kind": "EndpointSlice",
+					        "apiVersion": "discovery.k8s.io/v1",
+					        "metadata": {
+					          "name": "lb",
+					          "namespace": "default",
+					          "creationTimestamp": null,
+					          "labels": {
+					            "kubernetes.io/service-name": "lb"
+					          }
+					        },
+					        "addressType": "IPv4",
+					        "endpoints": [
+					          {
+					            "addresses": [
+					              "10.1.2.1"
+					            ],
+					            "conditions": {},
+					            "hostname": "testnode"
+					          },
+					          {
+					            "addresses": [
+					              "10.1.2.2"
+					            ],
+					            "conditions": {},
+					            "hostname": "anothertestnode"
+					          }
+					        ],
+					        "ports": [
+					          {
+					            "name": "port-0-0-1234",
+					            "protocol": "TCP",
+					            "port": 1234
+					          }
+					        ]
+					      }
+				*/
 				result, err := http.Get(fmt.Sprintf("http://localhost:%d", healthCheckNodePort))
 				if err != nil {
 					return err
@@ -183,10 +216,21 @@ var _ = Describe("BPF Proxy healthCheckNodeport", func() {
 						return err
 					}
 
+					b, err := k8s.Tracker().Get(v1.SchemeGroupVersion.WithResource("endpoints"), "default", "lb")
+					if err != nil {
+						return err
+					}
+
+					bjson, err := json.MarshalIndent(b, "", "  ")
+					if err != nil {
+						return err
+					}
+
+					//map[localEndpoints:0 service:map[name:lb namespace:default]]
 					var status map[string]interface{}
 					decoder := json.NewDecoder(result.Body)
 					err = decoder.Decode(&status)
-					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\n", result.StatusCode, status, ajson)
+					return fmt.Errorf("Unexpected status code %d; expected 200\nk8s error is:\n%+v\nGet obj:\n%+v\nGet eps:\n%+v\n", result.StatusCode, status, string(ajson), string(bjson))
 				}
 
 				var status map[string]interface{}
