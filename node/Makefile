@@ -47,6 +47,7 @@ TEST_CONTAINER_NAME_VER?=latest
 TEST_CONTAINER_NAME?=calico/test:$(TEST_CONTAINER_NAME_VER)-$(ARCH)
 
 # TODO: Update this to use newer version of Kubernetes.
+HYPERKUBE_IMAGE?=gcr.io/google_containers/hyperkube-$(ARCH):v1.17.0
 TEST_CONTAINER_FILES=$(shell find tests/ -type f ! -name '*.created')
 
 # Variables controlling the image
@@ -364,13 +365,12 @@ run-etcd:
 
 # Kubernetes apiserver used for tests
 run-k8s-apiserver: remote-deps stop-k8s-apiserver run-etcd
-	docker run --detach \
+	docker run \
 		--net=host --name st-apiserver \
 		-v $(CURDIR):/manifests \
 		-v $(CURDIR)/../:/go/src/github.com/projectcalico/calico:rw \
-		-v $(CURDIR)/tests/certs:/home/user/certs \
-		-e KUBECONFIG=/home/user/certs/kubeconfig \
-		$(CALICO_BUILD) kube-apiserver \
+		--detach \
+		${HYPERKUBE_IMAGE} kube-apiserver \
 			--bind-address=0.0.0.0 \
 			--insecure-bind-address=0.0.0.0 \
 			--etcd-servers=http://127.0.0.1:2379 \
