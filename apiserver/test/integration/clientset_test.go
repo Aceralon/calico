@@ -466,6 +466,7 @@ func TestHostEndpointClient(t *testing.T) {
 				return &v3.HostEndpoint{}
 			})
 			defer shutdownServer()
+			defer deleteHostEndpointClient(client, name)
 			if err := testHostEndpointClient(client, name); err != nil {
 				t.Fatal(err)
 			}
@@ -485,6 +486,13 @@ func createTestHostEndpoint(name string, ip string, node string) *v3.HostEndpoin
 	hostEndpoint.Spec.Node = node
 
 	return hostEndpoint
+}
+
+func deleteHostEndpointClient(client calicoclient.Interface, name string) error {
+	hostEndpointClient := client.ProjectcalicoV3().HostEndpoints()
+	ctx := context.Background()
+
+	return hostEndpointClient.Delete(ctx, name, v1.DeleteOptions{})
 }
 
 func testHostEndpointClient(client calicoclient.Interface, name string) error {
