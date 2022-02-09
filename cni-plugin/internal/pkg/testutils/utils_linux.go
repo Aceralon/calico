@@ -252,14 +252,11 @@ func RunCNIPluginWithId(
 	r, err = invoke.ExecPluginWithResult(context.Background(), pluginPath, []byte(netconf), args, customExec)
 	//TODO: error
 	if err != nil {
-		var buf [2048]byte
+		var buf [10000]byte
 		n := runtime.Stack(buf[:], true)
-		for n != 0 {
-			log.Debugf("Stack info: %s", string(buf[:n]))
-			n = runtime.Stack(buf[:], true)
-		}
+		log.Debugf("Stack info: %s", string(buf[:n]))
 		log.Debugf("config is: %s", netconf)
-		err = je.Wrap(err, je.Errorf("Stack info: %s", string(buf[:])))
+		err = je.Wrap(err, je.Errorf("Stack info: %s", string(buf[:n])))
 		return
 	}
 
