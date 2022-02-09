@@ -22,7 +22,6 @@ import (
 	cniv1 "github.com/containernetworking/cni/pkg/types/100"
 	"github.com/containernetworking/plugins/pkg/ns"
 	cnitestutils "github.com/containernetworking/plugins/pkg/testutils"
-	je "github.com/juju/errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
@@ -1721,7 +1720,7 @@ var _ = Describe("Kubernetes CNI tests", func() {
 			})
 
 			containerID, _, contVeth, contAddresses, _, contNs, err := testutils.CreateContainer(netconf, name, testutils.K8S_TEST_NS, "")
-			Expect(je.Trace(err)).NotTo(HaveOccurred()) // TODO: here error
+			Expect(err).NotTo(HaveOccurred())
 			mac := contVeth.Attrs().HardwareAddr
 
 			podIP := contAddresses[0].IP

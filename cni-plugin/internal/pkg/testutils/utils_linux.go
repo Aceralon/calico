@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -250,8 +249,9 @@ func RunCNIPluginWithId(
 	var r types.Result
 	pluginPath := fmt.Sprintf("%s/%s", os.Getenv("BIN"), os.Getenv("PLUGIN"))
 	r, err = invoke.ExecPluginWithResult(context.Background(), pluginPath, []byte(netconf), args, customExec)
+	//TODO: error
 	if err != nil {
-		err = je.Wrap(je.Trace(err), je.Errorf("config is: %s\n", netconf))
+		err = je.Wrap(err, je.Errorf("config is: %s\nargs: %+v\n,exec: %+v", netconf, args, customExec))
 		return
 	}
 
@@ -262,9 +262,6 @@ func RunCNIPluginWithId(
 	}
 
 	// Parse the result as the target CNI version.
-	if len(nc.CNIVersion) < 1 {
-		return nil, nil, nil, nil, errors.New(fmt.Sprintf("no version for %+v", nc))
-	}
 	if version.Compare(nc.CNIVersion, "0.3.0", "<") {
 		// Special case for older CNI versions.
 		var out []byte
@@ -278,14 +275,12 @@ func RunCNIPluginWithId(
 
 		result, err = cniv1.NewResultFromResult(&r020)
 		if err != nil {
-			err = je.Wrap(je.Trace(err), je.Errorf("cniVersion is: %s\n", nc.CNIVersion))
 			return
 		}
 
 	} else {
 		result, err = cniv1.GetResult(r)
 		if err != nil {
-			err = je.Wrap(je.Trace(err), je.Errorf("cniVersion is: %s\n", nc.CNIVersion))
 			return
 		}
 	}
