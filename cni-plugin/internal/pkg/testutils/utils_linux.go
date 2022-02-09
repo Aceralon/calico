@@ -214,12 +214,6 @@ func RunCNIPluginWithId(
 	contRoutes []netlink.Route,
 	err error,
 ) {
-	defer func() {
-		if err != nil {
-			err = je.Trace(err)
-		}
-	}()
-
 	// Set up the env for running the CNI plugin
 	k8sEnv := ""
 	if podName != "" {
@@ -277,17 +271,20 @@ func RunCNIPluginWithId(
 		r020 := types020.Result{}
 		if err = json.Unmarshal(out, &r020); err != nil {
 			log.WithField("out", out).Errorf("Error unmarshaling output to Result: %v\n", err)
+			err = je.Wrap(je.Trace(err), je.Errorf("cniVersion is: %s\n", nc.CNIVersion))
 			return
 		}
 
 		result, err = cniv1.NewResultFromResult(&r020)
 		if err != nil {
+			err = je.Wrap(je.Trace(err), je.Errorf("cniVersion is: %s\n", nc.CNIVersion))
 			return
 		}
 
 	} else {
 		result, err = cniv1.GetResult(r)
 		if err != nil {
+			err = je.Wrap(je.Trace(err), je.Errorf("cniVersion is: %s\n", nc.CNIVersion))
 			return
 		}
 	}
