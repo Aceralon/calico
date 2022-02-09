@@ -23,7 +23,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"syscall"
 
@@ -252,11 +251,8 @@ func RunCNIPluginWithId(
 	r, err = invoke.ExecPluginWithResult(context.Background(), pluginPath, []byte(netconf), args, customExec)
 	//TODO: error
 	if err != nil {
-		var buf [10000]byte
-		n := runtime.Stack(buf[:], true)
-		log.Debugf("Stack info: %s", string(buf[:n]))
 		log.Debugf("config is: %s", netconf)
-		err = je.Wrap(err, je.Errorf("Stack info: %s", string(buf[:n])))
+		err = je.Trace(err)
 		return
 	}
 
