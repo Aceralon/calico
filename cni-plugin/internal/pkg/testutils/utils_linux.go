@@ -33,6 +33,7 @@ import (
 	cniv1 "github.com/containernetworking/cni/pkg/types/100"
 	"github.com/containernetworking/plugins/pkg/ns"
 	"github.com/containernetworking/plugins/pkg/testutils"
+	je "github.com/juju/errors"
 	"github.com/mcuadros/go-version"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega/gexec"
@@ -213,6 +214,11 @@ func RunCNIPluginWithId(
 	contRoutes []netlink.Route,
 	err error,
 ) {
+	defer func() {
+		if err != nil {
+			err = je.Trace(err)
+		}
+	}()
 
 	// Set up the env for running the CNI plugin
 	k8sEnv := ""
