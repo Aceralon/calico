@@ -254,7 +254,9 @@ func RunCNIPluginWithId(
 	if err != nil {
 		var buf [1024]byte
 		n := runtime.Stack(buf[:], true)
-		err = je.Wrap(err, je.Errorf("config is: %s\nstack: %s", netconf, string(buf[:n])))
+		log.Debugf("Stack info: %s", string(buf[:n]))
+		log.Debugf("config is: %s", netconf)
+		err = je.Trace(err)
 		return
 	}
 
